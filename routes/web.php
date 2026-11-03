@@ -92,6 +92,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'index',
         ])->name('activity-logs.index');
     });
+    
+    // Export activity logs
+    Route::get('/activity-logs/export', [
+        CredentialActivityController::class,
+        'export',
+    ])->middleware('can:activity.view')->name('activity-logs.export');
+
 });
 
 require __DIR__ . '/settings.php';
