@@ -4,14 +4,17 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ManagerController;
 use App\Http\Controllers\WebsiteController;
 use App\Http\Controllers\CredentialController;
+use App\Http\Controllers\CredentialActivityController;
+use App\Http\Controllers\DashboardController;
+
 
 Route::inertia('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
-    Route::get('/dashboard', function () {
-        return inertia('dashboard');
-    })->middleware('can:dashboard.view')->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->middleware('can:dashboard.view')
+        ->name('dashboard');
 
     Route::middleware('can:manager.view')->group(function () {
         Route::get('/managers', [ManagerController::class, 'index'])
@@ -81,6 +84,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
             CredentialController::class,
             'showPassword',
         ])->name('credentials.password');
+    });
+
+    Route::middleware('can:activity.view')->group(function () {
+        Route::get('/activity-logs', [
+            CredentialActivityController::class,
+            'index',
+        ])->name('activity-logs.index');
     });
 });
 

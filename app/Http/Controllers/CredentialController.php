@@ -6,6 +6,7 @@ use App\Models\Credential;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use App\Models\CredentialActivity;
 
 class CredentialController extends Controller
 {
@@ -54,16 +55,21 @@ class CredentialController extends Controller
 
         $validated['created_by'] = $request->user()->id;
 
-        Credential::create($validated);
+        $credential = Credential::create($validated);
+
+        $this->logActivity($request, $credential, 'created');
 
         return back()->with('success', 'Credential created successfully.');
     }
 
-    public function showPassword(Credential $credential)
+    public function showPassword(Request $request, Credential $credential)
     {
-        return response()->json([
-            'password' => $credential->password,
-        ]);
+        $this->logActivity($request, $credential, 'password_viewed');
+
+        return response()
+            ->json(['password' => $credential->password])
+            ->header('Cache-Control', 'no-store, private')
+            ->header('Pragma', 'no-cache');
     }
 
     public function update(Request $request, Credential $credential)
@@ -83,14 +89,34 @@ class CredentialController extends Controller
         }
 
         $credential->update($validated);
+        $this->logActivity($request, $credential, 'updated');
 
         return back()->with('success', 'Credential updated successfully.');
     }
 
-    public function destroy(Credential $credential)
+    public function destroy(Request $request, Credential $credential)
     {
+        $this->logActivity($request, $credential, 'deleted');
         $credential->delete();
 
         return back()->with('success', 'Credential deleted successfully.');
+    }
+
+    // Log activity for credential actions
+
+    private function logActivity(
+        Request $request,
+        ?Credential $credential,
+        string $action
+    ): void {
+        CredentialActivity::create([
+            'credential_id' => $credential?->id,
+            'user_id' => $request->user()->id,
+            'action' => $action,
+            'credential_title' => $credential?->title,
+            'website_name' => $credential?->website?->name,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
     }
 }

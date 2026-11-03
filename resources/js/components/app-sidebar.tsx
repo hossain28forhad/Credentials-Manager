@@ -67,6 +67,15 @@ export function AppSidebar() {
         ...(permissions.includes('credential.view')
             ? [{ title: 'Credentials', href: '/credentials', icon: KeyRound }]
             : []),
+
+        // Activity Logs will be added when the backend module is ready.
+        ...(permissions.includes('activity.view')
+            ? [{
+                title: 'Activity Logs',
+                href: '/activity-logs',
+                icon: History,
+            }]
+            : []),
     ];
 
     const footerNavItems: NavItem[] = [

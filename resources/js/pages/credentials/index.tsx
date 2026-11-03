@@ -1,7 +1,9 @@
-
 import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
-import { Eye, EyeOff, Plus, Search, Pencil, Trash2, X, Globe } from 'lucide-react';
+import {
+    Eye, EyeOff, Plus, Search, Pencil, Trash2, X, Globe, Copy,
+    RefreshCw,
+} from 'lucide-react';
 
 type Website = {
     id: number;
@@ -135,6 +137,36 @@ export default function CredentialsIndex({ credentials, websites, can }: Props) 
         }
     }
 
+    async function copyPassword(id: number) {
+        let password = visiblePasswords[id];
+
+        if (password === undefined) {
+            alert('প্রথমে Password দেখাও।');
+            return;
+        }
+
+        try {
+            await navigator.clipboard.writeText(password);
+            alert('Password copied successfully!');
+        } catch {
+            alert('Password copy করা যায়নি।');
+        }
+    }
+
+    function generatePassword() {
+        const chars =
+            'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=';
+
+        const randomValues = new Uint32Array(20);
+        window.crypto.getRandomValues(randomValues);
+
+        const password = Array.from(randomValues)
+            .map((value) => chars[value % chars.length])
+            .join('');
+
+        form.setData('password', password);
+    }
+
     function deleteCredential(id: number) {
         if (confirm('এই credential delete করতে চাও?')) {
             router.delete(`/credentials/${id}`);
@@ -215,7 +247,17 @@ export default function CredentialsIndex({ credentials, websites, can }: Props) 
                                                 <div className="flex items-center gap-2">
                                                     <span className="max-w-[150px] truncate font-mono text-gray-600 dark:text-gray-300">
                                                         {visiblePasswords[item.id] ?? '••••••••'}
+
                                                     </span>
+                                                    {visiblePasswords[item.id] !== undefined && (
+                                                        <button
+                                                            onClick={() => copyPassword(item.id)}
+                                                            className="text-indigo-500 hover:text-indigo-700"
+                                                            title="Copy password"
+                                                        >
+                                                            <Copy size={16} />
+                                                        </button>
+                                                    )}
                                                     <button
                                                         onClick={() => togglePassword(item.id)}
                                                         disabled={loadingPassword === item.id}
@@ -312,6 +354,16 @@ export default function CredentialsIndex({ credentials, websites, can }: Props) 
                                         placeholder={field.placeholder}
                                         className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                                     />
+                                    {field.name === 'password' && (
+                                        <button
+                                            type="button"
+                                            onClick={generatePassword}
+                                            className="mt-2 inline-flex items-center gap-2 rounded-lg border border-indigo-200 px-3 py-2 text-xs font-medium text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:hover:bg-indigo-950"
+                                        >
+                                            <RefreshCw size={14} />
+                                            Generate Strong Password
+                                        </button>
+                                    )}
                                     {form.errors[field.name as keyof typeof form.errors] && (
                                         <p className="mt-1 text-xs text-red-500">
                                             {form.errors[field.name as keyof typeof form.errors]}
