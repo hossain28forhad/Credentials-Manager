@@ -3,15 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\Credential;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-use Inertia\Inertia;
 use App\Models\CredentialActivity;
+use App\Models\Website;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class CredentialController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        abort_unless(
+            $request->user()->can('credential.view'),
+            403
+        );
+
         $credentials = Credential::with([
             'website:id,name,url',
             'creator:id,name',
@@ -31,18 +36,26 @@ class CredentialController extends Controller
 
         return Inertia::render('credentials/index', [
             'credentials' => $credentials,
-            'websites' => \App\Models\Website::select('id', 'name')->orderBy('name')->get(),
+            'websites' => Website::select('id', 'name')
+                ->orderBy('name')
+                ->get(),
+
             'can' => [
-                'create' => auth()->user()->can('credential.create'),
-                'edit' => auth()->user()->can('credential.edit'),
-                'delete' => auth()->user()->can('credential.delete'),
-                'viewPassword' => auth()->user()->can('credential.password.view'),
+                'create' => $request->user()->can('credential.create'),
+                'edit' => $request->user()->can('credential.edit'),
+                'delete' => $request->user()->can('credential.delete'),
+                'viewPassword' => $request->user()->can('credential.password.view'),
             ],
         ]);
     }
 
     public function store(Request $request)
     {
+        abort_unless(
+            $request->user()->can('credential.create'),
+            403
+        );
+
         $validated = $request->validate([
             'website_id' => ['required', 'exists:websites,id'],
             'title' => ['required', 'string', 'max:255'],
@@ -64,16 +77,29 @@ class CredentialController extends Controller
 
     public function showPassword(Request $request, Credential $credential)
     {
+        abort_unless(
+            $request->user()->can('credential.password.view'),
+            403
+        );
+
         $this->logActivity($request, $credential, 'password_viewed');
 
         return response()
-            ->json(['password' => $credential->password])
-            ->header('Cache-Control', 'no-store, private')
-            ->header('Pragma', 'no-cache');
+            ->json([
+                'password' => $credential->password,
+            ])
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
     }
 
     public function update(Request $request, Credential $credential)
     {
+        abort_unless(
+            $request->user()->can('credential.edit'),
+            403
+        );
+
         $validated = $request->validate([
             'website_id' => ['required', 'exists:websites,id'],
             'title' => ['required', 'string', 'max:255'],
@@ -89,6 +115,7 @@ class CredentialController extends Controller
         }
 
         $credential->update($validated);
+
         $this->logActivity($request, $credential, 'updated');
 
         return back()->with('success', 'Credential updated successfully.');
@@ -96,19 +123,25 @@ class CredentialController extends Controller
 
     public function destroy(Request $request, Credential $credential)
     {
+        abort_unless(
+            $request->user()->can('credential.delete'),
+            403
+        );
+
         $this->logActivity($request, $credential, 'deleted');
+
         $credential->delete();
 
         return back()->with('success', 'Credential deleted successfully.');
     }
-
-    // Log activity for credential actions
 
     private function logActivity(
         Request $request,
         ?Credential $credential,
         string $action
     ): void {
+        $credential?->loadMissing('website:id,name');
+
         CredentialActivity::create([
             'credential_id' => $credential?->id,
             'user_id' => $request->user()->id,

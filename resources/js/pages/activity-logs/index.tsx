@@ -21,6 +21,12 @@ type Activity = {
     action: string;
     ip_address: string | null;
     created_at: string;
+    metadata?: {
+        route?: string | null;
+        url?: string | null;
+        method?: string | null;
+        required_permissions?: string[];
+    } | null;
 };
 
 type PaginationLink = {
@@ -46,6 +52,7 @@ const actionStyles: Record<string, string> = {
     updated: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
     deleted: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
     password_viewed: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+    unauthorized_access: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400',
 };
 
 export default function ActivityLogsIndex({ activities }: Props) {
@@ -123,6 +130,9 @@ export default function ActivityLogsIndex({ activities }: Props) {
                             <option value="updated">Updated</option>
                             <option value="deleted">Deleted</option>
                             <option value="password_viewed">Password Viewed</option>
+                            <option value="unauthorized_access">
+                                Unauthorized Access
+                            </option>
                         </select>
 
                         <button
@@ -179,10 +189,9 @@ export default function ActivityLogsIndex({ activities }: Props) {
 
                                         <td className="px-5 py-4">
                                             <span
-                                                className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
-                                                    actionStyles[item.action] ||
+                                                className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${actionStyles[item.action] ||
                                                     'bg-gray-100 text-gray-600'
-                                                }`}
+                                                    }`}
                                             >
                                                 {item.action.replaceAll('_', ' ')}
                                             </span>
@@ -237,11 +246,10 @@ export default function ActivityLogsIndex({ activities }: Props) {
                                     key={index}
                                     disabled={!link.url}
                                     onClick={() => link.url && router.visit(link.url)}
-                                    className={`rounded-lg px-3 py-2 text-xs ${
-                                        link.active
-                                            ? 'bg-indigo-600 text-white'
-                                            : 'border border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800'
-                                    } disabled:cursor-not-allowed disabled:opacity-40`}
+                                    className={`rounded-lg px-3 py-2 text-xs ${link.active
+                                        ? 'bg-indigo-600 text-white'
+                                        : 'border border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800'
+                                        } disabled:cursor-not-allowed disabled:opacity-40`}
                                     dangerouslySetInnerHTML={{
                                         __html: link.label,
                                     }}

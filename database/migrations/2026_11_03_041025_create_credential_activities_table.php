@@ -20,6 +20,9 @@ return new class extends Migration
                 ->constrained()
                 ->nullOnDelete();
 
+            $table->string('credential_title')->nullable();
+            $table->string('website_name')->nullable();
+
             $table->foreignId('user_id')
                 ->nullable()
                 ->constrained()
