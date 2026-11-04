@@ -6,9 +6,8 @@ import {
     Search,
     Filter,
     RotateCcw,
-    LogIn,
-    LogOut,
-    ShieldAlert,
+    Fingerprint,
+    DoorOpen,
     User,
     Globe,
     Monitor,
@@ -16,6 +15,7 @@ import {
     ChevronLeft,
     ChevronRight,
     Activity,
+    ShieldX,
 } from 'lucide-react';
 
 type LoginActivity = {
@@ -158,7 +158,7 @@ export default function LoginHistoryIndex({ activities, stats }: Props) {
                             </div>
 
                             <div className="rounded-xl bg-green-100 p-3 text-green-600 dark:bg-green-900/30 dark:text-green-400">
-                                <LogIn size={23} />
+                                <Fingerprint size={23} />
                             </div>
                         </div>
                     </div>
@@ -176,7 +176,7 @@ export default function LoginHistoryIndex({ activities, stats }: Props) {
                             </div>
 
                             <div className="rounded-xl bg-red-100 p-3 text-red-600 dark:bg-red-900/30 dark:text-red-400">
-                                <ShieldAlert size={23} />
+                                <ShieldX size={23} />
                             </div>
                         </div>
                     </div>
@@ -194,7 +194,7 @@ export default function LoginHistoryIndex({ activities, stats }: Props) {
                             </div>
 
                             <div className="rounded-xl bg-blue-100 p-3 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
-                                <LogOut size={23} />
+                                <DoorOpen size={23} />
                             </div>
                         </div>
                     </div>

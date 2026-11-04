@@ -12,7 +12,7 @@ const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 initializeTheme();
 
 void createInertiaApp({
-    title: (title) => (title ? `${title} - ${appName}` : appName),
+    title: (title) => `${title} - Credential Manager`,
     layout: (name) => {
         switch (true) {
             case name === 'welcome':
