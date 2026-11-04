@@ -1,6 +1,5 @@
-
-import { Head, router, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 
 type Manager = {
     id: number;
@@ -41,6 +40,19 @@ export default function ManagerIndex({
         password: '',
         permissions: [],
     });
+
+    const { url } = usePage();
+
+    useEffect(() => {
+        const params = new URLSearchParams(url.split('?')[1] ?? '');
+
+        if (params.get('create') === '1' && can.create) {
+            setEditingManager(null);
+            form.reset();
+            form.clearErrors();
+            setModalOpen(true);
+        }
+    }, [url, can.create]);
 
     const filteredManagers = managers.filter((manager) =>
         `${manager.name} ${manager.email}`
@@ -109,19 +121,23 @@ export default function ManagerIndex({
         router.delete(`/managers/${manager.id}`);
     };
 
+    const inputClass =
+        'w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20';
+
+    const labelClass = 'mb-2 block text-sm font-medium text-foreground';
+
     return (
         <>
             <Head title="Managers" />
 
-            <div className="min-h-full w-full min-w-0 space-y-6 bg-gray-50 p-4 sm:p-6 lg:p-8">
-
+            <div className="min-h-full w-full min-w-0 space-y-6 bg-background p-4 text-foreground transition-colors sm:p-6 lg:p-8">
                 {/* Header */}
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+                        <h1 className="text-2xl font-bold tracking-tight text-foreground">
                             Managers
                         </h1>
-                        <p className="mt-1 text-sm text-gray-500">
+                        <p className="mt-1 text-sm text-muted-foreground">
                             Manage your team members and their permissions.
                         </p>
                     </div>
@@ -129,7 +145,7 @@ export default function ManagerIndex({
                     {can.create && (
                         <button
                             onClick={openCreateModal}
-                            className="rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-gray-700"
+                            className="rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition hover:opacity-90"
                         >
                             + Add Manager
                         </button>
@@ -138,37 +154,36 @@ export default function ManagerIndex({
 
                 {/* Statistics */}
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                    <div className="rounded-xl border bg-white p-5 shadow-sm">
-                        <p className="text-sm text-gray-500">Total Managers</p>
-                        <h2 className="mt-2 text-3xl font-bold text-gray-900">
+                    <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+                        <p className="text-sm text-muted-foreground">Total Managers</p>
+                        <h2 className="mt-2 text-3xl font-bold text-card-foreground">
                             {managers.length}
                         </h2>
                     </div>
 
-                    <div className="rounded-xl border bg-white p-5 shadow-sm">
-                        <p className="text-sm text-gray-500">Active Managers</p>
-                        <h2 className="mt-2 text-3xl font-bold text-green-600">
+                    <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+                        <p className="text-sm text-muted-foreground">Active Managers</p>
+                        <h2 className="mt-2 text-3xl font-bold text-emerald-600 dark:text-emerald-400">
                             {managers.length}
                         </h2>
                     </div>
 
-                    <div className="rounded-xl border bg-white p-5 shadow-sm">
-                        <p className="text-sm text-gray-500">Available Permissions</p>
-                        <h2 className="mt-2 text-3xl font-bold text-blue-600">
+                    <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+                        <p className="text-sm text-muted-foreground">Available Permissions</p>
+                        <h2 className="mt-2 text-3xl font-bold text-primary">
                             {availablePermissions.length}
                         </h2>
                     </div>
                 </div>
 
                 {/* Manager Table */}
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-
-                    <div className="flex flex-wrap items-center justify-between gap-4 border-b p-5">
+                <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border p-5">
                         <div>
-                            <h2 className="font-semibold text-gray-900">
+                            <h2 className="font-semibold text-card-foreground">
                                 All Managers
                             </h2>
-                            <p className="mt-1 text-xs text-gray-500">
+                            <p className="mt-1 text-xs text-muted-foreground">
                                 View and manage registered managers.
                             </p>
                         </div>
@@ -178,13 +193,13 @@ export default function ManagerIndex({
                             placeholder="Search managers..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="w-full bg-white text-gray-900 placeholder:text-gray-400 rounded-lg border border-gray-300 px-4 py-2 text-sm outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 sm:w-64"
+                            className={`${inputClass} w-full sm:w-64`}
                         />
                     </div>
 
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm">
-                            <thead className="bg-gray-50 text-xs uppercase text-gray-500">
+                            <thead className="bg-muted/70 text-xs uppercase text-muted-foreground">
                                 <tr>
                                     <th className="px-6 py-4">Manager</th>
                                     <th className="px-6 py-4">Permissions</th>
@@ -193,20 +208,23 @@ export default function ManagerIndex({
                                 </tr>
                             </thead>
 
-                            <tbody className="divide-y divide-gray-100">
+                            <tbody className="divide-y divide-border">
                                 {filteredManagers.map((manager) => (
-                                    <tr key={manager.id} className="hover:bg-gray-50">
+                                    <tr
+                                        key={manager.id}
+                                        className="transition-colors hover:bg-muted/40"
+                                    >
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-700">
+                                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">
                                                     {manager.name.charAt(0).toUpperCase()}
                                                 </div>
 
                                                 <div>
-                                                    <p className="font-medium text-gray-900">
+                                                    <p className="font-medium text-card-foreground">
                                                         {manager.name}
                                                     </p>
-                                                    <p className="text-xs text-gray-500">
+                                                    <p className="text-xs text-muted-foreground">
                                                         {manager.email}
                                                     </p>
                                                 </div>
@@ -214,13 +232,13 @@ export default function ManagerIndex({
                                         </td>
 
                                         <td className="px-6 py-4">
-                                            <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
+                                            <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
                                                 {manager.permissions.length} Permissions
                                             </span>
                                         </td>
 
                                         <td className="px-6 py-4">
-                                            <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
+                                            <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400">
                                                 Active
                                             </span>
                                         </td>
@@ -230,7 +248,7 @@ export default function ManagerIndex({
                                                 {can.edit && (
                                                     <button
                                                         onClick={() => openEditModal(manager)}
-                                                        className="font-medium text-blue-600 hover:text-blue-800"
+                                                        className="font-medium text-primary hover:opacity-75"
                                                     >
                                                         Edit
                                                     </button>
@@ -239,7 +257,7 @@ export default function ManagerIndex({
                                                 {can.delete && (
                                                     <button
                                                         onClick={() => deleteManager(manager)}
-                                                        className="font-medium text-red-600 hover:text-red-800"
+                                                        className="font-medium text-red-600 hover:text-red-500 dark:text-red-400"
                                                     >
                                                         Delete
                                                     </button>
@@ -252,10 +270,10 @@ export default function ManagerIndex({
                                 {filteredManagers.length === 0 && (
                                     <tr>
                                         <td colSpan={4} className="px-6 py-16 text-center">
-                                            <p className="font-medium text-gray-700">
+                                            <p className="font-medium text-card-foreground">
                                                 No managers found
                                             </p>
-                                            <p className="mt-1 text-sm text-gray-500">
+                                            <p className="mt-1 text-sm text-muted-foreground">
                                                 Add a manager to get started.
                                             </p>
                                         </td>
@@ -265,7 +283,7 @@ export default function ManagerIndex({
                         </table>
                     </div>
 
-                    <div className="border-t px-6 py-4 text-xs text-gray-500">
+                    <div className="border-t border-border px-6 py-4 text-xs text-muted-foreground">
                         Showing {filteredManagers.length} of {managers.length} managers
                     </div>
                 </div>
@@ -273,22 +291,21 @@ export default function ManagerIndex({
 
             {/* Create / Edit Modal */}
             {modalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4">
-                    <div className="my-auto w-full max-w-2xl rounded-2xl bg-white shadow-2xl">
-
-                        <div className="flex items-center justify-between border-b p-6">
+                <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm">
+                    <div className="my-auto w-full max-w-2xl rounded-2xl border border-border bg-card text-card-foreground shadow-2xl">
+                        <div className="flex items-center justify-between border-b border-border p-6">
                             <div>
-                                <h2 className="text-xl font-bold text-gray-900">
+                                <h2 className="text-xl font-bold text-card-foreground">
                                     {editingManager ? 'Edit Manager' : 'Create Manager'}
                                 </h2>
-                                <p className="mt-1 text-sm text-gray-500">
+                                <p className="mt-1 text-sm text-muted-foreground">
                                     Manage account details and permissions.
                                 </p>
                             </div>
 
                             <button
                                 onClick={closeModal}
-                                className="text-2xl text-gray-400 hover:text-gray-900"
+                                className="text-2xl text-muted-foreground transition hover:text-foreground"
                                 aria-label="Close modal"
                             >
                                 ×
@@ -297,23 +314,19 @@ export default function ManagerIndex({
 
                         <form onSubmit={submitForm}>
                             <div className="max-h-[65vh] space-y-5 overflow-y-auto p-6">
-
                                 {/* Name */}
                                 <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700">
-                                        Full Name
-                                    </label>
-
+                                    <label className={labelClass}>Full Name</label>
                                     <input
                                         type="text"
                                         value={form.data.name}
                                         onChange={(e) => form.setData('name', e.target.value)}
                                         placeholder="Enter manager name"
-                                        className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-black placeholder:text-gray-400 outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                                        className={inputClass}
                                     />
 
                                     {form.errors.name && (
-                                        <p className="mt-1 text-xs text-red-600">
+                                        <p className="mt-1 text-xs text-red-600 dark:text-red-400">
                                             {form.errors.name}
                                         </p>
                                     )}
@@ -321,20 +334,17 @@ export default function ManagerIndex({
 
                                 {/* Email */}
                                 <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700">
-                                        Email Address
-                                    </label>
-
+                                    <label className={labelClass}>Email Address</label>
                                     <input
                                         type="email"
-                                        value={form.data.email} 
+                                        value={form.data.email}
                                         onChange={(e) => form.setData('email', e.target.value)}
                                         placeholder="manager@example.com"
-                                        className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-black placeholder:text-gray-400 outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                                        className={inputClass}
                                     />
 
                                     {form.errors.email && (
-                                        <p className="mt-1 text-xs text-red-600">
+                                        <p className="mt-1 text-xs text-red-600 dark:text-red-400">
                                             {form.errors.email}
                                         </p>
                                     )}
@@ -342,20 +352,23 @@ export default function ManagerIndex({
 
                                 {/* Password */}
                                 <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                                    <label className={labelClass}>
                                         Password {editingManager && '(Optional)'}
                                     </label>
-
                                     <input
                                         type="password"
                                         value={form.data.password}
                                         onChange={(e) => form.setData('password', e.target.value)}
-                                        placeholder={editingManager ? 'Leave blank to keep current password' : 'Enter password'}
-                                        className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-black placeholder:text-gray-400 outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                                        placeholder={
+                                            editingManager
+                                                ? 'Leave blank to keep current password'
+                                                : 'Enter password'
+                                        }
+                                        className={inputClass}
                                     />
 
                                     {form.errors.password && (
-                                        <p className="mt-1 text-xs text-red-600">
+                                        <p className="mt-1 text-xs text-red-600 dark:text-red-400">
                                             {form.errors.password}
                                         </p>
                                     )}
@@ -364,29 +377,29 @@ export default function ManagerIndex({
                                 {/* Permissions */}
                                 <div>
                                     <div className="mb-3 flex items-center justify-between">
-                                        <label className="text-sm font-semibold text-gray-900">
+                                        <label className="text-sm font-semibold text-foreground">
                                             Assign Permissions
                                         </label>
 
-                                        <span className="text-xs text-gray-500">
+                                        <span className="text-xs text-muted-foreground">
                                             {form.data.permissions.length} selected
                                         </span>
                                     </div>
 
-                                    <div className="grid grid-cols-1 gap-3 rounded-xl border border-gray-200 p-4 sm:grid-cols-2">
+                                    <div className="grid grid-cols-1 gap-3 rounded-xl border border-border bg-background p-4 sm:grid-cols-2">
                                         {availablePermissions.map((permission) => (
                                             <label
                                                 key={permission}
-                                                className="flex cursor-pointer items-center gap-3 rounded-lg p-2 transition hover:bg-gray-50"
+                                                className="flex cursor-pointer items-center gap-3 rounded-lg p-2 transition hover:bg-muted"
                                             >
                                                 <input
                                                     type="checkbox"
                                                     checked={form.data.permissions.includes(permission)}
                                                     onChange={() => togglePermission(permission)}
-                                                    className="h-4 w-4 rounded border-gray-300 accent-gray-900"
+                                                    className="h-4 w-4 rounded border-input accent-primary"
                                                 />
 
-                                                <span className="text-sm text-gray-700">
+                                                <span className="text-sm text-foreground">
                                                     {permission.replaceAll('.', ' ')}
                                                 </span>
                                             </label>
@@ -394,7 +407,7 @@ export default function ManagerIndex({
                                     </div>
 
                                     {form.errors.permissions && (
-                                        <p className="mt-2 text-xs text-red-600">
+                                        <p className="mt-2 text-xs text-red-600 dark:text-red-400">
                                             {form.errors.permissions}
                                         </p>
                                     )}
@@ -402,11 +415,11 @@ export default function ManagerIndex({
                             </div>
 
                             {/* Footer */}
-                            <div className="flex justify-end gap-3 border-t bg-gray-50 p-5">
+                            <div className="flex justify-end gap-3 border-t border-border bg-muted/40 p-5">
                                 <button
                                     type="button"
                                     onClick={closeModal}
-                                    className="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                                    className="rounded-lg border border-border bg-background px-5 py-2.5 text-sm font-medium text-foreground transition hover:bg-muted"
                                 >
                                     Cancel
                                 </button>
@@ -414,7 +427,7 @@ export default function ManagerIndex({
                                 <button
                                     type="submit"
                                     disabled={form.processing}
-                                    className="rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                    className="rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     {form.processing
                                         ? 'Saving...'

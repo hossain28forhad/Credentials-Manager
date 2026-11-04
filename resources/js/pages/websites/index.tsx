@@ -1,5 +1,6 @@
-import { Head, router, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+
+import { Head, router, useForm, Link, usePage } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 import {
     Globe,
     Search,
@@ -49,6 +50,19 @@ export default function WebsiteIndex({ websites, can }: Props) {
         category: '',
         description: '',
     });
+
+    const { url } = usePage();
+
+    useEffect(() => {
+        const params = new URLSearchParams(url.split('?')[1] ?? '');
+
+        if (params.get('create') === '1' && can.create) {
+            setEditingWebsite(null);
+            form.reset();
+            form.clearErrors();
+            setModalOpen(true);
+        }
+    }, [url, can.create]);
 
     const filteredWebsites = websites.filter((website) =>
         `${website.name} ${website.url} ${website.category ?? ''} ${website.dfid}`
@@ -107,19 +121,23 @@ export default function WebsiteIndex({ websites, can }: Props) {
         router.delete(`/websites/${website.id}`);
     };
 
+    const inputClass =
+        'w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20';
+
+    const labelClass = 'mb-2 block text-sm font-medium text-foreground';
+
     return (
         <>
             <Head title="Websites" />
 
-            <div className="min-h-full w-full min-w-0 space-y-6 bg-gray-50 p-4 sm:p-6 lg:p-8">
-
+            <div className="min-h-full w-full min-w-0 space-y-6 bg-background p-4 text-foreground transition-colors sm:p-6 lg:p-8">
                 {/* Header */}
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+                        <h1 className="text-2xl font-bold tracking-tight text-foreground">
                             Websites
                         </h1>
-                        <p className="mt-1 text-sm text-gray-500">
+                        <p className="mt-1 text-sm text-muted-foreground">
                             Manage all your registered websites.
                         </p>
                     </div>
@@ -127,7 +145,7 @@ export default function WebsiteIndex({ websites, can }: Props) {
                     {can.create && (
                         <button
                             onClick={openCreateModal}
-                            className="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-gray-700"
+                            className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition hover:opacity-90"
                         >
                             <Plus size={17} />
                             Add Website
@@ -137,19 +155,19 @@ export default function WebsiteIndex({ websites, can }: Props) {
 
                 {/* Statistics */}
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                    <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
                         <div className="flex items-center justify-between">
-                            <p className="text-sm text-gray-500">Total Websites</p>
-                            <Globe className="text-blue-600" size={22} />
+                            <p className="text-sm text-muted-foreground">Total Websites</p>
+                            <Globe className="text-primary" size={22} />
                         </div>
-                        <h2 className="mt-3 text-3xl font-bold text-gray-900">
+                        <h2 className="mt-3 text-3xl font-bold text-card-foreground">
                             {websites.length}
                         </h2>
                     </div>
 
-                    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-                        <p className="text-sm text-gray-500">Categories Used</p>
-                        <h2 className="mt-3 text-3xl font-bold text-purple-600">
+                    <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+                        <p className="text-sm text-muted-foreground">Categories Used</p>
+                        <h2 className="mt-3 text-3xl font-bold text-primary">
                             {new Set(
                                 websites.map((website) => website.category).filter(Boolean)
                             ).size}
@@ -158,14 +176,13 @@ export default function WebsiteIndex({ websites, can }: Props) {
                 </div>
 
                 {/* Website Table */}
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-
-                    <div className="flex flex-wrap items-center justify-between gap-4 border-b border-gray-200 p-5">
+                <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border p-5">
                         <div>
-                            <h2 className="font-semibold text-gray-900">
+                            <h2 className="font-semibold text-card-foreground">
                                 All Websites
                             </h2>
-                            <p className="mt-1 text-xs text-gray-500">
+                            <p className="mt-1 text-xs text-muted-foreground">
                                 View and manage your websites.
                             </p>
                         </div>
@@ -173,21 +190,21 @@ export default function WebsiteIndex({ websites, can }: Props) {
                         <div className="relative w-full sm:w-72">
                             <Search
                                 size={17}
-                                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
                             />
                             <input
                                 type="search"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 placeholder="Search websites..."
-                                className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-sm text-gray-900 outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                                className={`${inputClass} pl-10`}
                             />
                         </div>
                     </div>
 
                     <div className="overflow-x-auto">
                         <table className="w-full min-w-[700px] text-left text-sm">
-                            <thead className="bg-gray-50 text-xs uppercase text-gray-500">
+                            <thead className="bg-muted/70 text-xs uppercase text-muted-foreground">
                                 <tr>
                                     <th className="px-6 py-4">Website</th>
                                     <th className="px-6 py-4">Category</th>
@@ -196,21 +213,24 @@ export default function WebsiteIndex({ websites, can }: Props) {
                                 </tr>
                             </thead>
 
-                            <tbody className="divide-y divide-gray-100">
+                            <tbody className="divide-y divide-border">
                                 {filteredWebsites.map((website) => (
-                                    <tr key={website.id} className="hover:bg-gray-50">
+                                    <tr
+                                        key={website.id}
+                                        className="transition-colors hover:bg-muted/40"
+                                    >
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                                                     <Globe size={19} />
                                                 </div>
 
                                                 <div className="min-w-0">
-                                                    <p className="font-medium text-gray-900">
+                                                    <p className="font-medium text-card-foreground">
                                                         {website.name}
                                                     </p>
 
-                                                    <p className="text-sm text-gray-500">
+                                                    <p className="text-sm text-muted-foreground">
                                                         {website.dfid}
                                                     </p>
 
@@ -218,7 +238,7 @@ export default function WebsiteIndex({ websites, can }: Props) {
                                                         href={website.url}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="mt-1 inline-flex max-w-xs items-center gap-1 truncate text-xs text-blue-600 hover:underline"
+                                                        className="mt-1 inline-flex max-w-xs items-center gap-1 truncate text-xs text-primary hover:underline"
                                                     >
                                                         {website.url}
                                                         <ExternalLink size={12} />
@@ -228,12 +248,12 @@ export default function WebsiteIndex({ websites, can }: Props) {
                                         </td>
 
                                         <td className="px-6 py-4">
-                                            <span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-medium text-purple-700">
+                                            <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
                                                 {website.category || 'Uncategorized'}
                                             </span>
                                         </td>
 
-                                        <td className="px-6 py-4 text-gray-600">
+                                        <td className="px-6 py-4 text-muted-foreground">
                                             {website.created_by}
                                         </td>
 
@@ -242,7 +262,7 @@ export default function WebsiteIndex({ websites, can }: Props) {
                                                 {can.edit && (
                                                     <button
                                                         onClick={() => openEditModal(website)}
-                                                        className="text-blue-600 hover:text-blue-800"
+                                                        className="text-primary transition hover:opacity-70"
                                                         title="Edit"
                                                     >
                                                         <Pencil size={17} />
@@ -252,7 +272,7 @@ export default function WebsiteIndex({ websites, can }: Props) {
                                                 {can.delete && (
                                                     <button
                                                         onClick={() => deleteWebsite(website)}
-                                                        className="text-red-600 hover:text-red-800"
+                                                        className="text-red-600 transition hover:text-red-500 dark:text-red-400"
                                                         title="Delete"
                                                     >
                                                         <Trash2 size={17} />
@@ -266,11 +286,11 @@ export default function WebsiteIndex({ websites, can }: Props) {
                                 {filteredWebsites.length === 0 && (
                                     <tr>
                                         <td colSpan={4} className="px-6 py-16 text-center">
-                                            <Globe className="mx-auto text-gray-300" size={35} />
-                                            <p className="mt-3 font-medium text-gray-700">
+                                            <Globe className="mx-auto text-muted-foreground/50" size={35} />
+                                            <p className="mt-3 font-medium text-card-foreground">
                                                 No websites found
                                             </p>
-                                            <p className="mt-1 text-sm text-gray-500">
+                                            <p className="mt-1 text-sm text-muted-foreground">
                                                 Add a website to get started.
                                             </p>
                                         </td>
@@ -280,7 +300,7 @@ export default function WebsiteIndex({ websites, can }: Props) {
                         </table>
                     </div>
 
-                    <div className="border-t border-gray-200 px-6 py-4 text-xs text-gray-500">
+                    <div className="border-t border-border px-6 py-4 text-xs text-muted-foreground">
                         Showing {filteredWebsites.length} of {websites.length} websites
                     </div>
                 </div>
@@ -288,15 +308,14 @@ export default function WebsiteIndex({ websites, can }: Props) {
 
             {/* Create / Edit Modal */}
             {modalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4">
-                    <div className="my-auto w-full max-w-xl rounded-2xl bg-white shadow-2xl">
-
-                        <div className="flex items-center justify-between border-b p-6">
+                <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm">
+                    <div className="my-auto w-full max-w-xl rounded-2xl border border-border bg-card text-card-foreground shadow-2xl">
+                        <div className="flex items-center justify-between border-b border-border p-6">
                             <div>
-                                <h2 className="text-xl font-bold text-gray-900">
+                                <h2 className="text-xl font-bold text-card-foreground">
                                     {editingWebsite ? 'Edit Website' : 'Add Website'}
                                 </h2>
-                                <p className="mt-1 text-sm text-gray-500">
+                                <p className="mt-1 text-sm text-muted-foreground">
                                     Enter your website information.
                                 </p>
                             </div>
@@ -305,7 +324,7 @@ export default function WebsiteIndex({ websites, can }: Props) {
                                 type="button"
                                 onClick={closeModal}
                                 aria-label="Close modal"
-                                className="text-gray-400 hover:text-gray-900"
+                                className="text-muted-foreground transition hover:text-foreground"
                             >
                                 <X size={22} />
                             </button>
@@ -313,9 +332,8 @@ export default function WebsiteIndex({ websites, can }: Props) {
 
                         <form onSubmit={submitForm}>
                             <div className="space-y-5 p-6">
-
                                 <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                                    <label className={labelClass}>
                                         Website Name *
                                     </label>
                                     <input
@@ -324,15 +342,17 @@ export default function WebsiteIndex({ websites, can }: Props) {
                                         value={form.data.name}
                                         onChange={(e) => form.setData('name', e.target.value)}
                                         placeholder="Example: Google"
-                                        className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-black text-sm outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                                        className={inputClass}
                                     />
                                     {form.errors.name && (
-                                        <p className="mt-1 text-xs text-red-600">{form.errors.name}</p>
+                                        <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+                                            {form.errors.name}
+                                        </p>
                                     )}
                                 </div>
 
                                 <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                                    <label className={labelClass}>
                                         Website URL *
                                     </label>
                                     <input
@@ -341,74 +361,70 @@ export default function WebsiteIndex({ websites, can }: Props) {
                                         value={form.data.url}
                                         onChange={(e) => form.setData('url', e.target.value)}
                                         placeholder="https://example.com"
-                                        className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-black text-sm outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                                        className={inputClass}
                                     />
                                     {form.errors.url && (
-                                        <p className="mt-1 text-xs text-red-600">{form.errors.url}</p>
+                                        <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+                                            {form.errors.url}
+                                        </p>
                                     )}
                                 </div>
 
-
                                 <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700">
-                                        DFID *
-                                    </label>
-
+                                    <label className={labelClass}>DFID *</label>
                                     <input
                                         type="text"
                                         required
                                         value={form.data.dfid}
                                         onChange={(e) => form.setData('dfid', e.target.value)}
                                         placeholder="Enter unique DFID"
-                                        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-black text-sm text-gray-900 outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                                        className={inputClass}
                                     />
-
                                     {form.errors.dfid && (
-                                        <p className="mt-1 text-xs text-red-600">
+                                        <p className="mt-1 text-xs text-red-600 dark:text-red-400">
                                             {form.errors.dfid}
                                         </p>
                                     )}
                                 </div>
 
-
                                 <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700">
-                                        Category
-                                    </label>
+                                    <label className={labelClass}>Category</label>
                                     <input
                                         type="text"
                                         value={form.data.category}
                                         onChange={(e) => form.setData('category', e.target.value)}
                                         placeholder="Social Media, Business, Development..."
-                                        className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-black text-sm outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                                        className={inputClass}
                                     />
                                     {form.errors.category && (
-                                        <p className="mt-1 text-xs text-red-600">{form.errors.category}</p>
+                                        <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+                                            {form.errors.category}
+                                        </p>
                                     )}
                                 </div>
 
                                 <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700">
-                                        Description
-                                    </label>
+                                    <label className={labelClass}>Description</label>
                                     <textarea
                                         rows={3}
                                         value={form.data.description}
                                         onChange={(e) => form.setData('description', e.target.value)}
                                         placeholder="Write a short description..."
-                                        className="w-full resize-none rounded-lg border border-gray-300 px-4 py-2.5 text-black text-sm outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                                        className={`${inputClass} resize-none`}
                                     />
                                     {form.errors.description && (
-                                        <p className="mt-1 text-xs text-red-600">{form.errors.description}</p>
+                                        <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+                                            {form.errors.description}
+                                        </p>
                                     )}
                                 </div>
                             </div>
 
-                            <div className="flex justify-end gap-3 border-t bg-gray-50 p-5">
+                            <div className="flex justify-end gap-3 border-t border-border bg-muted/40 p-5">
                                 <button
                                     type="button"
                                     onClick={closeModal}
-                                    className="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                                    className="rounded-lg border border-border bg-background px-5 py-2.5 text-sm font-medium text-foreground transition hover:bg-muted"
                                 >
                                     Cancel
                                 </button>
@@ -416,7 +432,7 @@ export default function WebsiteIndex({ websites, can }: Props) {
                                 <button
                                     type="submit"
                                     disabled={form.processing}
-                                    className="rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+                                    className="rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition hover:opacity-90 disabled:opacity-50"
                                 >
                                     {form.processing
                                         ? 'Saving...'

@@ -351,7 +351,7 @@ export default function LoginHistoryIndex({ activities, stats }: Props) {
                                     </tr>
                                 )}
                             </tbody>
-                        </table>
+                        </table> 
                     </div>
 
                     {/* Pagination */}

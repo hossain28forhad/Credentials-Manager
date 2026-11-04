@@ -8,6 +8,9 @@ import SettingsLayout from '@/layouts/settings/layout';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
+// This will set light / dark mode on load...
+initializeTheme();
+
 void createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
     layout: (name) => {
@@ -36,5 +39,4 @@ void createInertiaApp({
     },
 });
 
-// This will set light / dark mode on load...
-initializeTheme();
+

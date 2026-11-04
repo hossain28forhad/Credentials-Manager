@@ -1,5 +1,5 @@
-import { Head, router, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, router, useForm, Link, usePage } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
 import {
     Eye, EyeOff, Plus, Search, Pencil, Trash2, X, Globe, Copy,
     RefreshCw,
@@ -49,6 +49,19 @@ export default function CredentialsIndex({ credentials, websites, can }: Props) 
         login_url: '',
         notes: '',
     });
+
+    const { url } = usePage();
+
+    useEffect(() => {
+        const params = new URLSearchParams(url.split('?')[1] ?? '');
+
+        if (params.get('create') === '1' && can.create) {
+            setEditing(null);
+            form.reset();
+            form.clearErrors();
+            setModalOpen(true);
+        }
+    }, [url, can.create]);
 
     const filteredCredentials = credentials.filter((item) =>
         [
@@ -180,10 +193,10 @@ export default function CredentialsIndex({ credentials, websites, can }: Props) 
             <div className="space-y-6 p-4 md:p-6">
                 <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                        <h1 className="text-2xl font-bold text-foreground">
                             Credentials
                         </h1>
-                        <p className="mt-1 text-sm text-gray-500">
+                        <p className="mt-1 text-sm text-muted-foreground">
                             Manage your website login credentials securely.
                         </p>
                     </div>
@@ -198,21 +211,21 @@ export default function CredentialsIndex({ credentials, websites, can }: Props) 
                     )}
                 </div>
 
-                <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
                     <div className="relative max-w-sm">
                         <Search className="absolute left-3 top-3 text-gray-400" size={18} />
                         <input
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Search credentials..."
-                            className="w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                            className="w-full rounded-lg border border-input bg-background py-2.5 pl-10 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
                         />
                     </div>
 
                     <div className="mt-5 overflow-x-auto">
                         <table className="w-full min-w-[750px] text-left text-sm">
                             <thead>
-                                <tr className="border-b text-xs uppercase text-gray-500 dark:border-gray-700">
+                                <tr className="border-b border-border text-xs uppercase text-muted-foreground">
                                     <th className="px-3 py-3">Title</th>
                                     <th className="px-3 py-3">Website</th>
                                     <th className="px-3 py-3">Username</th>
@@ -223,29 +236,29 @@ export default function CredentialsIndex({ credentials, websites, can }: Props) 
 
                             <tbody>
                                 {filteredCredentials.map((item) => (
-                                    <tr key={item.id} className="border-b last:border-0 dark:border-gray-800">
-                                        <td className="px-3 py-4 font-medium text-gray-900 dark:text-white">
+                                    <tr key={item.id} className="border-b border-border last:border-0 hover:bg-muted/40 transition-colors">
+                                        <td className="px-3 py-4 font-medium text-foreground">
                                             {item.title}
                                             {item.email && (
                                                 <p className="mt-1 text-xs text-gray-500">{item.email}</p>
                                             )}
                                         </td>
 
-                                        <td className="px-3 py-4 text-gray-600 dark:text-gray-300">
+                                        <td className="px-3 py-4 text-muted-foreground">
                                             <div className="flex items-center gap-2">
                                                 <Globe size={16} />
                                                 {item.website_name}
                                             </div>
                                         </td>
 
-                                        <td className="px-3 py-4 text-gray-600 dark:text-gray-300">
+                                        <td className="px-3 py-4 text-muted-foreground">
                                             {item.username || '—'}
                                         </td>
 
                                         <td className="px-3 py-4">
                                             {can.viewPassword ? (
                                                 <div className="flex items-center gap-2">
-                                                    <span className="max-w-[150px] truncate font-mono text-gray-600 dark:text-gray-300">
+                                                    <span className="max-w-[150px] truncate font-mono text-foreground">
                                                         {visiblePasswords[item.id] ?? '••••••••'}
 
                                                     </span>
@@ -306,9 +319,9 @@ export default function CredentialsIndex({ credentials, websites, can }: Props) 
 
             {modalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4">
-                    <div className="my-6 w-full max-w-2xl rounded-xl bg-white p-6 shadow-xl dark:bg-gray-900">
+                    <div className="my-6 w-full max-w-2xl rounded-xl border border-border bg-card p-6 shadow-xl">
                         <div className="mb-5 flex items-center justify-between">
-                            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            <h2 className="text-lg font-semibold text-foreground">
                                 {editing ? 'Edit Credential' : 'Add Credential'}
                             </h2>
                             <button onClick={() => setModalOpen(false)} className="text-gray-500 hover:text-gray-800">
@@ -318,13 +331,13 @@ export default function CredentialsIndex({ credentials, websites, can }: Props) 
 
                         <form onSubmit={submitForm} className="space-y-4">
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <label className="mb-1 block text-sm font-medium text-foreground">
                                     Website *
                                 </label>
                                 <select
                                     value={form.data.website_id}
                                     onChange={(e) => form.setData('website_id', e.target.value)}
-                                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                                    className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
                                 >
                                     <option value="">Select Website</option>
                                     {websites.map((website) => (
@@ -344,7 +357,7 @@ export default function CredentialsIndex({ credentials, websites, can }: Props) 
                                 { name: 'login_url', label: 'Login URL', placeholder: 'https://example.com/login' },
                             ].map((field) => (
                                 <div key={field.name}>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <label className="mb-1 block text-sm font-medium text-foreground">
                                         {field.label}
                                     </label>
                                     <input
@@ -352,13 +365,13 @@ export default function CredentialsIndex({ credentials, websites, can }: Props) 
                                         value={form.data[field.name as keyof typeof form.data]}
                                         onChange={(e) => form.setData(field.name as keyof typeof form.data, e.target.value)}
                                         placeholder={field.placeholder}
-                                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                                        className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
                                     />
                                     {field.name === 'password' && (
                                         <button
                                             type="button"
                                             onClick={generatePassword}
-                                            className="mt-2 inline-flex items-center gap-2 rounded-lg border border-indigo-200 px-3 py-2 text-xs font-medium text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:hover:bg-indigo-950"
+                                            className="mt-2 inline-flex items-center gap-2 rounded-lg border border-primary/30 px-3 py-2 text-xs font-medium text-primary hover:bg-primary/10"
                                         >
                                             <RefreshCw size={14} />
                                             Generate Strong Password
@@ -373,23 +386,23 @@ export default function CredentialsIndex({ credentials, websites, can }: Props) 
                             ))}
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <label className="mb-1 block text-sm font-medium text-foreground">
                                     Notes
                                 </label>
                                 <textarea
                                     rows={3}
                                     value={form.data.notes}
                                     onChange={(e) => form.setData('notes', e.target.value)}
-                                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                                    className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
                                 />
                                 {form.errors.notes && <p className="mt-1 text-xs text-red-500">{form.errors.notes}</p>}
                             </div>
 
-                            <div className="flex justify-end gap-3 border-t pt-4 dark:border-gray-700">
+                            <div className="flex justify-end gap-3 border-t border-border pt-4">
                                 <button
                                     type="button"
                                     onClick={() => setModalOpen(false)}
-                                    className="rounded-lg border px-4 py-2 text-sm text-gray-700 dark:border-gray-700 dark:text-gray-300"
+                                    className="rounded-lg border border-border px-4 py-2 text-sm text-foreground hover:bg-muted"
                                 >
                                     Cancel
                                 </button>

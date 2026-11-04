@@ -5,6 +5,8 @@ import AppLogoIcon from '@/components/app-logo-icon';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -64,6 +66,7 @@ const activeItemStyles =
     'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100';
 
 export function AppHeader({ breadcrumbs = [] }: Props) {
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const page = usePage();
     const { auth } = page.props;
     const getInitials = useInitials();
@@ -75,7 +78,10 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                 <div className="mx-auto flex h-16 items-center px-4 md:max-w-7xl">
                     {/* Mobile Menu */}
                     <div className="lg:hidden">
-                        <Sheet>
+                        <Sheet
+                            open={mobileMenuOpen}
+                            onOpenChange={setMobileMenuOpen}
+                        >
                             <SheetTrigger asChild>
                                 <Button
                                     variant="ghost"
@@ -102,6 +108,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                                 <Link
                                                     key={item.title}
                                                     href={item.href}
+                                                    onClick={() => setMobileMenuOpen(false)}
                                                     className="flex items-center space-x-2 font-medium"
                                                 >
                                                     {item.icon && (
