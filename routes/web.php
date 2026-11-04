@@ -6,6 +6,7 @@ use App\Http\Controllers\WebsiteController;
 use App\Http\Controllers\CredentialController;
 use App\Http\Controllers\CredentialActivityController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LoginActivityController;
 
 
 Route::inertia('/', 'welcome')->name('home');
@@ -92,13 +93,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'index',
         ])->name('activity-logs.index');
     });
-    
+
     // Export activity logs
     Route::get('/activity-logs/export', [
         CredentialActivityController::class,
         'export',
     ])->middleware('can:activity.view')->name('activity-logs.export');
 
+    // Login Activity
+    Route::get('/login-history', [LoginActivityController::class, 'index'])
+        ->middleware('can:login-activity.view')
+        ->name('login-history.index');
 });
 
 require __DIR__ . '/settings.php';

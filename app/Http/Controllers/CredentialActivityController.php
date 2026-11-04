@@ -95,97 +95,128 @@ class CredentialActivityController extends Controller
     }
 
 
-    public function export(Request $request)
-    {
-        abort_unless($request->user()->can('activity.view'), 403);
 
-        $request->validate([
-            'search' => ['nullable', 'string', 'max:255'],
-            'action' => ['nullable', 'in:created,updated,deleted,password_viewed,unauthorized_access'],
-            'from_date' => ['nullable', 'date'],
-            'to_date' => ['nullable', 'date', 'after_or_equal:from_date'],
-        ]);
+public function export(Request $request)
+{
+    abort_unless($request->user()->can('activity.view'), 403);
 
-        $query = CredentialActivity::with([
+    $request->validate([
+        'search' => ['nullable', 'string', 'max:255'],
+        'action' => [
+            'nullable',
+            'in:created,updated,deleted,password_viewed,unauthorized_access',
+        ],
+        'from_date' => ['nullable', 'date'],
+        'to_date' => ['nullable', 'date', 'after_or_equal:from_date'],
+    ]);
+
+    $query = CredentialActivity::query()
+        ->with([
             'user:id,name,email',
             'credential:id,title,website_id',
             'credential.website:id,name',
-        ])->latest();
+        ]);
 
-        if ($request->filled('search')) {
-            $search = $request->input('search');
+    // Search
+    if ($request->filled('search')) {
+        $search = $request->input('search');
 
-            $query->where(function ($q) use ($search) {
-                $q->whereHas('user', function ($userQuery) use ($search) {
-                    $userQuery->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
-                })->orWhere(function ($credentialQuery) use ($search) {
-                    $credentialQuery->where('credential_title', 'like', "%{$search}%")
-                        ->orWhereHas('credential', function ($q) use ($search) {
-                            $q->where('title', 'like', "%{$search}%");
-                        });
-                });
+        $query->where(function ($q) use ($search) {
+            $q->whereHas('user', function ($userQuery) use ($search) {
+                $userQuery->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            })->orWhere(function ($credentialQuery) use ($search) {
+                $credentialQuery->where('credential_title', 'like', "%{$search}%")
+                    ->orWhereHas('credential', function ($q) use ($search) {
+                        $q->where('title', 'like', "%{$search}%");
+                    });
             });
-        }
+        });
+    }
 
-        if ($request->filled('action')) {
-            $query->where('action', $request->input('action'));
-        }
+    // Action filter
+    if ($request->filled('action')) {
+        $query->where('action', $request->input('action'));
+    }
 
-        if ($request->filled('from_date')) {
-            $query->whereDate('created_at', '>=', $request->input('from_date'));
-        }
+    // Date filters
+    if ($request->filled('from_date')) {
+        $query->whereDate('created_at', '>=', $request->input('from_date'));
+    }
 
-        if ($request->filled('to_date')) {
-            $query->whereDate('created_at', '<=', $request->input('to_date'));
-        }
+    if ($request->filled('to_date')) {
+        $query->whereDate('created_at', '<=', $request->input('to_date'));
+    }
 
-        $activities = $query->get();
+    $fileName = 'activity-logs-' . now()->format('Y-m-d-His') . '.csv';
 
-        $fileName = 'activity-logs-' . now()->format('Y-m-d-His') . '.csv';
+    return response()->streamDownload(function () use ($query) {
+        $output = fopen('php://output', 'w');
 
-        return response()->streamDownload(function () use ($activities) {
-            $output = fopen('php://output', 'w');
+        // UTF-8 BOM for Excel
+        fwrite($output, "\xEF\xBB\xBF");
 
-            // Excel-friendly UTF-8 BOM
-            fwrite($output, "\xEF\xBB\xBF");
+        // Prevent CSV Formula Injection
+        $safe = function ($value) {
+            $value = (string) ($value ?? '');
 
-            fputcsv($output, [
-                'ID',
-                'User',
-                'Email',
-                'Action',
-                'Credential',
-                'Website',
-                'IP Address',
-                'Date & Time',
-                'Route',
-                'URL',
-                'Method',
-                'Required Permissions',
-            ]);
-
-            foreach ($activities as $activity) {
-                fputcsv($output, [
-                    $activity->id,
-                    $activity->user?->name ?? 'Deleted User',
-                    $activity->user?->email ?? '',
-                    $activity->action,
-                    $activity->credential_title ?? $activity->credential?->title ?? 'Deleted Credential',
-                    $activity->website_name ?? $activity->credential?->website?->name ?? 'Deleted Website',
-                    $activity->ip_address ?? '',
-                    $activity->created_at?->format('Y-m-d H:i:s') ?? '',
-                    $activity->metadata['route'] ?? '',
-                    $activity->metadata['url'] ?? '',
-                    $activity->metadata['method'] ?? '',
-                    implode(', ', $activity->metadata['required_permissions'] ?? []),
-                ]);
+            if (preg_match('/^[\s\x00-\x1F]*[=+\-@]/', $value)) {
+                return "'" . $value;
             }
 
-            fclose($output);
-        }, $fileName, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Cache-Control' => 'no-store, private',
+            return $value;
+        };
+
+        fputcsv($output, [
+            'ID',
+            'User',
+            'Email',
+            'Action',
+            'Credential',
+            'Website',
+            'IP Address',
+            'Date & Time',
+            'Route',
+            'URL',
+            'Method',
+            'Required Permissions',
         ]);
-    }
+
+        // Process 500 records at a time
+        $query->chunkById(500, function ($activities) use ($output, $safe) {
+            foreach ($activities as $activity) {
+                $metadata = $activity->metadata ?? [];
+
+                fputcsv($output, [
+                    $activity->id,
+                    $safe($activity->user?->name ?? 'Deleted User'),
+                    $safe($activity->user?->email),
+                    $safe($activity->action),
+                    $safe(
+                        $activity->credential_title
+                        ?? $activity->credential?->title
+                        ?? 'Deleted Credential'
+                    ),
+                    $safe(
+                        $activity->website_name
+                        ?? $activity->credential?->website?->name
+                        ?? 'Deleted Website'
+                    ),
+                    $safe($activity->ip_address),
+                    $safe($activity->created_at?->format('Y-m-d H:i:s')),
+                    $safe($metadata['route'] ?? ''),
+                    $safe($metadata['url'] ?? ''),
+                    $safe($metadata['method'] ?? ''),
+                    $safe(implode(', ', $metadata['required_permissions'] ?? [])),
+                ]);
+            }
+        });
+
+        fclose($output);
+    }, $fileName, [
+        'Content-Type' => 'text/csv; charset=UTF-8',
+        'Cache-Control' => 'no-store, private',
+    ]);
+}
+
 }

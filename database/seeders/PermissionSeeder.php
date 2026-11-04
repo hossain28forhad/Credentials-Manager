@@ -31,14 +31,11 @@ class PermissionSeeder extends Seeder
             'credential.edit',
             'credential.delete',
             'credential.copy',
+            'credential.password.view',
 
             'activity.view',
 
-            'credential.view',
-            'credential.create',
-            'credential.edit',
-            'credential.delete',
-            'credential.password.view',
+            'login-activity.view',
         ];
 
         foreach ($permissions as $permission) {
@@ -48,7 +45,11 @@ class PermissionSeeder extends Seeder
             ]);
         }
 
-        $superAdmin = Role::findByName('super-admin');
+        $superAdmin = Role::findByName('super-admin', 'web');
+
+        // Super Admin gets all permissions
         $superAdmin->givePermissionTo(Permission::all());
+
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }
 }

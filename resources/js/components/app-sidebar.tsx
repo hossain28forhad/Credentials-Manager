@@ -76,6 +76,14 @@ export function AppSidebar() {
                 icon: History,
             }]
             : []),
+
+        ...(permissions.includes('login-activity.view')
+            ? [{
+                title: 'Login History',
+                href: '/login-history',
+                icon: History,
+            }]
+            : []),
     ];
 
     const footerNavItems: NavItem[] = [
