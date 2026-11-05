@@ -9,7 +9,7 @@
         "check": "vp check",
         "check:fix": "vp check --fix",
         "types:check": "tsc --noEmit",
-        "test": "node --version"
+        "test": "echo \"Error: no test specified\" && exit 0"
     },
     "dependencies": {
         "@inertiajs/react": "^3.0.0",
