@@ -40,6 +40,15 @@ export default function CredentialsIndex({ credentials, websites, can }: Props) 
     const [visiblePasswords, setVisiblePasswords] = useState<Record<number, string>>({});
     const [loadingPassword, setLoadingPassword] = useState<number | null>(null);
 
+    // Password generator settings
+    const [generatorOpen, setGeneratorOpen] = useState(false);
+    const [passwordLength, setPasswordLength] = useState(20);
+    const [includeUppercase, setIncludeUppercase] = useState(true);
+    const [includeLowercase, setIncludeLowercase] = useState(true);
+    const [includeNumbers, setIncludeNumbers] = useState(true);
+    const [includeSymbols, setIncludeSymbols] = useState(true);
+    const [generatedPasswordVisible, setGeneratedPasswordVisible] = useState(false);
+
     const form = useForm({
         website_id: '',
         title: '',
@@ -166,19 +175,98 @@ export default function CredentialsIndex({ credentials, websites, can }: Props) 
         }
     }
 
-    function generatePassword() {
-        const chars =
-            'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=';
+    function secureRandomInt(max: number): number {
+        // Rejection sampling avoids modulo bias.
+        const range = 0x100000000;
+        const limit = range - (range % max);
+        const randomValues = new Uint32Array(1);
 
-        const randomValues = new Uint32Array(20);
-        window.crypto.getRandomValues(randomValues);
+        let value: number;
 
-        const password = Array.from(randomValues)
-            .map((value) => chars[value % chars.length])
-            .join('');
+        do {
+            window.crypto.getRandomValues(randomValues);
+            value = randomValues[0];
+        } while (value >= limit);
 
-        form.setData('password', password);
+        return value % max;
     }
+
+    function generatePassword() {
+        const characterSets = [
+            includeUppercase ? 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' : '',
+            includeLowercase ? 'abcdefghijklmnopqrstuvwxyz' : '',
+            includeNumbers ? '0123456789' : '',
+            includeSymbols ? '!@#$%^&*()_+-=[]{};:,.?' : '',
+        ].filter((set) => set.length > 0);
+
+        if (characterSets.length === 0) {
+            alert('কমপক্ষে একটি character type নির্বাচন করো।');
+            return;
+        }
+
+        if (passwordLength < characterSets.length) {
+            alert(`নির্বাচিত character type অনুযায়ী password length কমপক্ষে ${characterSets.length} হতে হবে।`);
+            return;
+        }
+
+        const allCharacters = characterSets.join('');
+        const passwordCharacters = characterSets.map(
+            (set) => set[secureRandomInt(set.length)]
+        );
+
+        while (passwordCharacters.length < passwordLength) {
+            passwordCharacters.push(
+                allCharacters[secureRandomInt(allCharacters.length)]
+            );
+        }
+
+        // Secure Fisher-Yates shuffle.
+        for (let i = passwordCharacters.length - 1; i > 0; i--) {
+            const j = secureRandomInt(i + 1);
+            [passwordCharacters[i], passwordCharacters[j]] = [
+                passwordCharacters[j],
+                passwordCharacters[i],
+            ];
+        }
+
+        form.setData('password', passwordCharacters.join(''));
+        setGeneratedPasswordVisible(false);
+    }
+
+    async function copyGeneratedPassword() {
+        if (!form.data.password) {
+            alert('প্রথমে একটি password generate করো।');
+            return;
+        }
+
+        try {
+            await navigator.clipboard.writeText(form.data.password);
+            alert('Password copied successfully!');
+        } catch {
+            alert('Password copy করা যায়নি।');
+        }
+    }
+
+    const selectedCharacterTypes = [
+        includeUppercase,
+        includeLowercase,
+        includeNumbers,
+        includeSymbols,
+    ].filter(Boolean).length;
+
+    const passwordStrength =
+        !form.data.password ? null :
+        form.data.password.length >= 16 && selectedCharacterTypes >= 3 ? 'Strong' :
+        form.data.password.length >= 12 && selectedCharacterTypes >= 2 ? 'Good' :
+        'Weak';
+
+    const strengthWidth =
+        passwordStrength === 'Strong' ? '100%' :
+        passwordStrength === 'Good' ? '65%' : '30%';
+
+    const strengthColor =
+        passwordStrength === 'Strong' ? 'bg-emerald-500' :
+        passwordStrength === 'Good' ? 'bg-amber-500' : 'bg-red-500';
 
     function deleteCredential(id: number) {
         if (confirm('এই credential delete করতে চাও?')) {
@@ -360,22 +448,138 @@ export default function CredentialsIndex({ credentials, websites, can }: Props) 
                                     <label className="mb-1 block text-sm font-medium text-foreground">
                                         {field.label}
                                     </label>
-                                    <input
-                                        type={field.name === 'password' ? 'password' : 'text'}
-                                        value={form.data[field.name as keyof typeof form.data]}
-                                        onChange={(e) => form.setData(field.name as keyof typeof form.data, e.target.value)}
-                                        placeholder={field.placeholder}
-                                        className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
-                                    />
-                                    {field.name === 'password' && (
-                                        <button
-                                            type="button"
-                                            onClick={generatePassword}
-                                            className="mt-2 inline-flex items-center gap-2 rounded-lg border border-primary/30 px-3 py-2 text-xs font-medium text-primary hover:bg-primary/10"
-                                        >
-                                            <RefreshCw size={14} />
-                                            Generate Strong Password
-                                        </button>
+                                    {field.name === 'password' ? (
+                                        <>
+                                            <div className="flex gap-2">
+                                                <div className="relative flex-1">
+                                                    <input
+                                                        type={generatedPasswordVisible ? 'text' : 'password'}
+                                                        value={form.data.password}
+                                                        onChange={(e) => form.setData('password', e.target.value)}
+                                                        placeholder={field.placeholder}
+                                                        autoComplete="new-password"
+                                                        className="w-full rounded-lg border border-input bg-background px-3 py-2.5 pr-11 font-mono text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setGeneratedPasswordVisible((visible) => !visible)}
+                                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                                        title={generatedPasswordVisible ? 'Hide password' : 'Show password'}
+                                                    >
+                                                        {generatedPasswordVisible ? <EyeOff size={17} /> : <Eye size={17} />}
+                                                    </button>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setGeneratorOpen((open) => !open)}
+                                                    className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-primary/30 px-3 py-2 text-sm font-medium text-primary hover:bg-primary/10"
+                                                >
+                                                    <RefreshCw size={16} />
+                                                    Generator
+                                                </button>
+                                            </div>
+
+                                            {generatorOpen && (
+                                                <div className="mt-3 space-y-4 rounded-xl border border-border bg-muted/30 p-4">
+                                                    <div className="flex items-center justify-between gap-3">
+                                                        <div>
+                                                            <h3 className="text-sm font-semibold text-foreground">Password Generator</h3>
+                                                            <p className="mt-1 text-xs text-muted-foreground">Create a strong, random password.</p>
+                                                        </div>
+                                                        <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                                                            {passwordLength} characters
+                                                        </span>
+                                                    </div>
+
+                                                    <div>
+                                                        <div className="mb-2 flex items-center justify-between">
+                                                            <label className="text-sm font-medium text-foreground">Password length</label>
+                                                            <span className="text-sm font-semibold tabular-nums text-foreground">{passwordLength}</span>
+                                                        </div>
+                                                        <input
+                                                            type="range"
+                                                            min={8}
+                                                            max={64}
+                                                            value={passwordLength}
+                                                            onChange={(e) => setPasswordLength(Number(e.target.value))}
+                                                            className="w-full accent-primary"
+                                                        />
+                                                        <div className="flex justify-between text-xs text-muted-foreground">
+                                                            <span>8</span>
+                                                            <span>64</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        {[
+                                                            { label: 'Uppercase (A–Z)', checked: includeUppercase, change: setIncludeUppercase },
+                                                            { label: 'Lowercase (a–z)', checked: includeLowercase, change: setIncludeLowercase },
+                                                            { label: 'Numbers (0–9)', checked: includeNumbers, change: setIncludeNumbers },
+                                                            { label: 'Symbols (!@#)', checked: includeSymbols, change: setIncludeSymbols },
+                                                        ].map((option) => (
+                                                            <label key={option.label} className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={option.checked}
+                                                                    onChange={(e) => option.change(e.target.checked)}
+                                                                    className="h-4 w-4 rounded border-input accent-primary"
+                                                                />
+                                                                {option.label}
+                                                            </label>
+                                                        ))}
+                                                    </div>
+
+                                                    {form.data.password && passwordStrength && (
+                                                        <div className="space-y-2">
+                                                            <div className="flex items-center justify-between text-xs">
+                                                                <span className="text-muted-foreground">Password strength</span>
+                                                                <span className={
+                                                                    passwordStrength === 'Strong' ? 'font-semibold text-emerald-500' :
+                                                                    passwordStrength === 'Good' ? 'font-semibold text-amber-500' :
+                                                                    'font-semibold text-red-500'
+                                                                }>
+                                                                    {passwordStrength}
+                                                                </span>
+                                                            </div>
+                                                            <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                                                                <div
+                                                                    className={`h-full rounded-full transition-all ${strengthColor}`}
+                                                                    style={{ width: strengthWidth }}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    <div className="flex flex-wrap gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={generatePassword}
+                                                            className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+                                                        >
+                                                            <RefreshCw size={15} />
+                                                            Generate Password
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={copyGeneratedPassword}
+                                                            disabled={!form.data.password}
+                                                            className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                                                        >
+                                                            <Copy size={15} />
+                                                            Copy
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <input
+                                            type="text"
+                                            value={form.data[field.name as keyof typeof form.data]}
+                                            onChange={(e) => form.setData(field.name as keyof typeof form.data, e.target.value)}
+                                            placeholder={field.placeholder}
+                                            className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+                                        />
                                     )}
                                     {form.errors[field.name as keyof typeof form.errors] && (
                                         <p className="mt-1 text-xs text-red-500">
