@@ -1,46 +1,21 @@
-// Components
-import { Form, Head } from '@inertiajs/react';
-import TextLink from '@/components/text-link';
-import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner';
-import { logout } from '@/routes';
-import { send } from '@/routes/verification';
 
-export default function VerifyEmail({ status }: { status?: string }) {
+import { Head, router } from '@inertiajs/react';
+import { useEffect } from 'react';
+
+export default function VerifyEmail() {
+    useEffect(() => {
+        router.visit('/dashboard', { replace: true });
+    }, []);
+
     return (
         <>
-            <Head title="Email verification" />
+            <Head title="Redirecting..." />
 
-            {status === 'verification-link-sent' && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
-                    A new verification link has been sent to the email address
-                    you provided during registration.
-                </div>
-            )}
-
-            <Form {...send.form()} className="space-y-6 text-center">
-                {({ processing }) => (
-                    <>
-                        <Button disabled={processing} variant="secondary">
-                            {processing && <Spinner />}
-                            Resend verification email
-                        </Button>
-
-                        <TextLink
-                            href={logout()}
-                            className="mx-auto block text-sm"
-                        >
-                            Log out
-                        </TextLink>
-                    </>
-                )}
-            </Form>
+            <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
+                <p className="text-sm text-muted-foreground">
+                    Redirecting...
+                </p>
+            </div>
         </>
     );
 }
-
-VerifyEmail.layout = {
-    title: 'Email verification',
-    description:
-        'Please verify your email address by clicking on the link we just emailed to you.',
-};
