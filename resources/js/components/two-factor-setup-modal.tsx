@@ -1,7 +1,20 @@
+
 import { Form } from '@inertiajs/react';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
-import { Check, Copy, ScanLine } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+    Check,
+    Copy,
+    KeyRound,
+    ScanLine,
+    ShieldCheck,
+} from 'lucide-react';
+import {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
 import AlertError from '@/components/alert-error';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -18,33 +31,14 @@ import {
     InputOTPSlot,
 } from '@/components/ui/input-otp';
 import { Spinner } from '@/components/ui/spinner';
-import { useAppearance } from '@/hooks/use-appearance';
 import { useClipboard } from '@/hooks/use-clipboard';
 import { OTP_MAX_LENGTH } from '@/hooks/use-two-factor-auth';
 import { confirm } from '@/routes/two-factor';
 
 function GridScanIcon() {
     return (
-        <div className="mb-3 rounded-full border border-border bg-card p-0.5 shadow-sm">
-            <div className="relative overflow-hidden rounded-full border border-border bg-muted p-2.5">
-                <div className="absolute inset-0 grid grid-cols-5 opacity-50">
-                    {Array.from({ length: 5 }, (_, i) => (
-                        <div
-                            key={`col-${i + 1}`}
-                            className="border-r border-border last:border-r-0"
-                        />
-                    ))}
-                </div>
-                <div className="absolute inset-0 grid grid-rows-5 opacity-50">
-                    {Array.from({ length: 5 }, (_, i) => (
-                        <div
-                            key={`row-${i + 1}`}
-                            className="border-b border-border last:border-b-0"
-                        />
-                    ))}
-                </div>
-                <ScanLine className="relative z-20 size-6 text-foreground" />
-            </div>
+        <div className="flex size-14 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10">
+            <ScanLine className="size-7 text-primary" />
         </div>
     );
 }
@@ -62,79 +56,86 @@ function TwoFactorSetupStep({
     onNextStep: () => void;
     errors: string[];
 }) {
-    const { resolvedAppearance } = useAppearance();
     const [copiedText, copy] = useClipboard();
     const IconComponent = copiedText === manualSetupKey ? Check : Copy;
 
     return (
-        <>
+        <div className="w-full space-y-6">
             {errors?.length ? (
                 <AlertError errors={errors} />
             ) : (
                 <>
-                    <div className="mx-auto flex max-w-md overflow-hidden">
-                        <div className="mx-auto aspect-square w-64 rounded-lg border border-border">
-                            <div className="z-10 flex h-full w-full items-center justify-center p-5">
-                                {qrCodeSvg ? (
-                                    <div
-                                        className="aspect-square w-full rounded-lg bg-white p-2 [&_svg]:size-full"
-                                        dangerouslySetInnerHTML={{
-                                            __html: qrCodeSvg,
-                                        }}
-                                        style={{
-                                            filter:
-                                                resolvedAppearance === 'dark'
-                                                    ? 'invert(1) brightness(1.5)'
-                                                    : undefined,
-                                        }}
-                                    />
-                                ) : (
-                                    <Spinner />
-                                )}
-                            </div>
+                    <div className="rounded-2xl border border-border bg-muted/30 p-5">
+                        <div className="mb-4 flex items-center justify-center gap-2 text-sm font-medium text-foreground">
+                            <ScanLine className="size-4 text-primary" />
+                            Scan with your authenticator app
                         </div>
-                    </div>
 
-                    <div className="flex w-full space-x-5">
-                        <Button className="w-full" onClick={onNextStep}>
-                            {buttonText}
-                        </Button>
-                    </div>
-
-                    <div className="relative flex w-full items-center justify-center">
-                        <div className="absolute inset-0 top-1/2 h-px w-full bg-border" />
-                        <span className="relative bg-card px-2 py-1">
-                            or, enter the code manually
-                        </span>
-                    </div>
-
-                    <div className="flex w-full space-x-2">
-                        <div className="flex w-full items-stretch overflow-hidden rounded-xl border border-border">
-                            {!manualSetupKey ? (
-                                <div className="flex h-full w-full items-center justify-center bg-muted p-3">
-                                    <Spinner />
-                                </div>
+                        <div className="mx-auto flex aspect-square w-full max-w-56 items-center justify-center rounded-xl border border-border bg-white p-4 shadow-sm">
+                            {qrCodeSvg ? (
+                                <div
+                                    className="aspect-square w-full [&_svg]:size-full"
+                                    dangerouslySetInnerHTML={{
+                                        __html: qrCodeSvg,
+                                    }}
+                                />
                             ) : (
+                                <Spinner />
+                            )}
+                        </div>
+
+                        <p className="mt-4 text-center text-xs leading-5 text-muted-foreground">
+                            Open Google Authenticator, Microsoft
+                            Authenticator, or another TOTP app and scan this
+                            QR code.
+                        </p>
+                    </div>
+
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                            <KeyRound className="size-4 text-primary" />
+                            Set up manually
+                        </div>
+
+                        <div className="flex overflow-hidden rounded-xl border border-border bg-background">
+                            {manualSetupKey ? (
                                 <>
                                     <input
                                         type="text"
                                         readOnly
                                         value={manualSetupKey}
-                                        className="h-full w-full bg-background p-3 text-foreground outline-none"
+                                        aria-label="Manual setup key"
+                                        className="min-w-0 flex-1 bg-transparent px-3 py-3 font-mono text-sm tracking-wider text-foreground outline-none"
                                     />
+
                                     <button
+                                        type="button"
                                         onClick={() => copy(manualSetupKey)}
-                                        className="border-l border-border px-3 hover:bg-muted"
+                                        aria-label="Copy setup key"
+                                        className="flex items-center justify-center border-l border-border px-4 text-muted-foreground transition hover:bg-muted hover:text-foreground"
                                     >
-                                        <IconComponent className="w-4" />
+                                        <IconComponent className="size-4" />
                                     </button>
                                 </>
+                            ) : (
+                                <div className="flex w-full justify-center p-3">
+                                    <Spinner />
+                                </div>
                             )}
                         </div>
+
+                        <p className="text-xs leading-5 text-muted-foreground">
+                            If you cannot scan the QR code, enter this setup
+                            key manually in your authenticator app.
+                        </p>
                     </div>
+
+                    <Button className="w-full" onClick={onNextStep}>
+                        {buttonText}
+                    </Button>
                 </>
             )}
-        </>
+        </div>
     );
 }
 
@@ -145,13 +146,11 @@ function TwoFactorVerificationStep({
     onClose: () => void;
     onBack: () => void;
 }) {
-    const [code, setCode] = useState<string>('');
+    const [code, setCode] = useState('');
     const pinInputContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        setTimeout(() => {
-            pinInputContainerRef.current?.querySelector('input')?.focus();
-        }, 0);
+        pinInputContainerRef.current?.querySelector('input')?.focus();
     }, []);
 
     return (
@@ -161,19 +160,24 @@ function TwoFactorVerificationStep({
             resetOnError
             resetOnSuccess
         >
-            {({
-                processing,
-                errors,
-            }: {
-                processing: boolean;
-                errors?: { confirmTwoFactorAuthentication?: { code?: string } };
-            }) => (
-                <>
+            {({ processing, errors }) => (
+                <div className="w-full space-y-6">
+                    <div className="rounded-2xl border border-border bg-muted/30 p-5">
+                        <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                            <ShieldCheck className="size-6" />
+                        </div>
+
+                        <p className="text-center text-sm leading-6 text-muted-foreground">
+                            Enter the 6-digit verification code generated by
+                            your authenticator app.
+                        </p>
+                    </div>
+
                     <div
                         ref={pinInputContainerRef}
-                        className="relative w-full space-y-3"
+                        className="w-full space-y-3"
                     >
-                        <div className="flex w-full flex-col items-center space-y-3 py-2">
+                        <div className="flex justify-center py-2">
                             <InputOTP
                                 id="otp"
                                 name="code"
@@ -195,35 +199,42 @@ function TwoFactorVerificationStep({
                                     )}
                                 </InputOTPGroup>
                             </InputOTP>
-                            <InputError
-                                message={
-                                    errors?.confirmTwoFactorAuthentication?.code
-                                }
-                            />
                         </div>
 
-                        <div className="flex w-full space-x-5">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                className="flex-1"
-                                onClick={onBack}
-                                disabled={processing}
-                            >
-                                Back
-                            </Button>
-                            <Button
-                                type="submit"
-                                className="flex-1"
-                                disabled={
-                                    processing || code.length < OTP_MAX_LENGTH
-                                }
-                            >
-                                Confirm
-                            </Button>
-                        </div>
+                        <InputError
+                            message={errors?.confirmTwoFactorAuthentication}
+                        />
                     </div>
-                </>
+
+                    <div className="flex gap-3">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="flex-1"
+                            onClick={onBack}
+                            disabled={processing}
+                        >
+                            Back
+                        </Button>
+
+                        <Button
+                            type="submit"
+                            className="flex-1"
+                            disabled={
+                                processing || code.length < OTP_MAX_LENGTH
+                            }
+                        >
+                            {processing ? (
+                                <>
+                                    <Spinner />
+                                    Verifying...
+                                </>
+                            ) : (
+                                'Verify & Enable'
+                            )}
+                        </Button>
+                    </div>
+                </div>
             )}
         </Form>
     );
@@ -252,37 +263,32 @@ export default function TwoFactorSetupModal({
     fetchSetupData,
     errors,
 }: Props) {
-    const [showVerificationStep, setShowVerificationStep] =
-        useState<boolean>(false);
+    const [showVerificationStep, setShowVerificationStep] = useState(false);
 
-    const modalConfig = useMemo<{
-        title: string;
-        description: string;
-        buttonText: string;
-    }>(() => {
+    const modalConfig = useMemo(() => {
         if (twoFactorEnabled) {
             return {
                 title: 'Two-factor authentication enabled',
                 description:
-                    'Two-factor authentication is now enabled. Scan the QR code or enter the setup key in your authenticator app.',
+                    'Your account is now protected with two-factor authentication.',
                 buttonText: 'Close',
             };
         }
 
         if (showVerificationStep) {
             return {
-                title: 'Verify authentication code',
+                title: 'Verify your authenticator',
                 description:
-                    'Enter the 6-digit code from your authenticator app',
-                buttonText: 'Continue',
+                    'Confirm your setup by entering the code from your authenticator app.',
+                buttonText: 'Verify',
             };
         }
 
         return {
-            title: 'Enable two-factor authentication',
+            title: 'Set up two-factor authentication',
             description:
-                'To finish enabling two-factor authentication, scan the QR code or enter the setup key in your authenticator app',
-            buttonText: 'Continue',
+                'Follow the steps below to add an extra layer of security to your account.',
+            buttonText: 'Continue to verification',
         };
     }, [twoFactorEnabled, showVerificationStep]);
 
@@ -302,7 +308,6 @@ export default function TwoFactorSetupModal({
     const handleModalNextStep = useCallback(() => {
         if (requiresConfirmation) {
             setShowVerificationStep(true);
-
             return;
         }
 
@@ -323,17 +328,24 @@ export default function TwoFactorSetupModal({
     }, [isOpen, qrCodeSvg]);
 
     return (
-        <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-            <DialogContent className="sm:max-w-md">
-                <DialogHeader className="flex items-center justify-center">
+        <Dialog
+            open={isOpen}
+            onOpenChange={(open) => !open && handleClose()}
+        >
+            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
+                <DialogHeader className="flex flex-col items-center text-center">
                     <GridScanIcon />
-                    <DialogTitle>{modalConfig.title}</DialogTitle>
-                    <DialogDescription className="text-center">
+
+                    <DialogTitle className="mt-2 text-xl">
+                        {modalConfig.title}
+                    </DialogTitle>
+
+                    <DialogDescription className="max-w-sm leading-6">
                         {modalConfig.description}
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="flex flex-col items-center space-y-5">
+                <div className="pt-2">
                     {showVerificationStep ? (
                         <TwoFactorVerificationStep
                             onClose={handleClose}

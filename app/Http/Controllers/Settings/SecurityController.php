@@ -16,8 +16,10 @@ class SecurityController extends Controller
     /**
      * Show the user's security settings page.
      */
+    
     public function edit(TwoFactorAuthenticationRequest $request): Response
     {
+        // dd('SECURITY CONTROLLER LOADED');
         $props = [
             'canManageTwoFactor' => Features::canManageTwoFactorAuthentication(),
             'canManagePasskeys' => Features::canManagePasskeys(),
@@ -47,6 +49,7 @@ class SecurityController extends Controller
             $props['requiresConfirmation'] = Features::optionEnabled(Features::twoFactorAuthentication(), 'confirm');
         }
 
+        // dd($props);
         return Inertia::render('settings/security', $props);
     }
 

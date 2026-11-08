@@ -1,22 +1,20 @@
-# Credential Manager
+# Website Credential Manager
 
-A secure web-based Credential Management System built with **Laravel 13, React, Inertia.js, and Tailwind CSS**.
+A secure and modern web-based credential management system built with **Laravel 13, React, Inertia.js, and Tailwind CSS**.
 
-Credential Manager helps administrators and managers securely manage website information and login credentials from a centralized dashboard.
+Website Credential Manager helps administrators manage website information, securely store login credentials, manage users, control permissions, and monitor account activities through a centralized dashboard.
 
-## Project Overview
+## Author
 
-Credential Manager is designed to manage multiple websites, their login credentials, managers, permissions, and user activities.
+**Forhad Hossain**
 
-The system includes role-based access control so administrators can manage users and assign permissions according to their responsibilities.
-
-## Technology Stack
+## Tech Stack
 
 ### Backend
-- PHP 8.5
 - Laravel 13
-- Laravel Fortify
+- PHP 8.5+
 - MySQL
+- Laravel Fortify
 - Spatie Laravel Permission
 
 ### Frontend
@@ -24,153 +22,161 @@ The system includes role-based access control so administrators can manage users
 - TypeScript
 - Inertia.js
 - Tailwind CSS
-- Lucide React Icons
-
-### Development Tools
-- Node.js
+- Lucide React
+- Vite
 - pnpm
-- Ubuntu WSL
-- Git & GitHub
 
 ## Features
 
-### 1. Authentication
-- User authentication
-- Login and logout
-- Email verification support
-- Protected routes
+### 1. Authentication System
+- User Registration
+- User Login and Logout
+- Secure Password Management
+- Password Confirmation
+- Laravel Fortify Authentication
+- Custom Welcome Page
+- Custom Login Page
+- Custom Registration Page
 
 ### 2. Role & Permission Management
-Two primary roles:
+Two primary roles are available:
 
 - **Super Admin**
 - **Manager**
 
-Features:
-- Role-based access control
-- Permission-based route protection
-- Assign permissions to managers
-- Super Admin can manage managers
-- Managers can access features according to assigned permissions
+Super Admin can:
+- Create Managers
+- Edit Manager Information
+- Delete Managers
+- Assign Permissions to Managers
+- Manage Manager Access
 
-### 3. Manager Management
-- Create managers
-- View manager list
-- Edit manager information
-- Delete managers
-- Assign permissions to managers
-- Manage manager access
+Managers can access features according to their assigned permissions.
 
-### 4. Website Management
-- Add websites
-- View website list
-- Edit website information
-- Delete websites
-- Website name
-- Website URL
-- Website category
-- Website description
-- Unique DFID field
-
-### 5. Credential Management
-- Add website credentials
-- View credential list
-- Edit credentials
-- Delete credentials
-- Associate credentials with websites
-- Store username and email
-- Store encrypted passwords
-- Store login URL and notes
-- Search credentials
-
-### 6. Password Security
-- Laravel encrypted password casting
-- Password visibility control
-- Password copy functionality
-- Strong password generator
-- Separate password-view permission planned for access control
-
-### 7. Activity Logs
-Track important credential activities:
-
-- Credential created
-- Credential updated
-- Credential deleted
-- Password viewed
-
-Activity information includes:
-- User name
-- Credential information
-- Website information
-- Action type
-- IP address
-- User agent
-- Activity date and time
-
-Historical credential and website names are being preserved for future activity records, even after deletion.
-
-### 8. Dashboard
-Dynamic dashboard statistics:
-
+### 3. Dashboard
+- Dynamic Dashboard Statistics
 - Total Managers
 - Total Websites
 - Total Credentials
-- Total Activities
-
-Additional sections:
 - Recent Activities
-- System Overview
-- Current User Role
-- System Status
+- Dashboard Analytics
 
-Dashboard statistics and recent activities are loaded from the Laravel backend.
+### 4. Website Management
+- Add New Websites
+- Edit Website Information
+- Delete Websites
+- View Website Details
+- Website Name
+- Unique DFID
+- Website URL
+- Category
+- Description
+- Track Website Creator
 
-### 9. Activity Log Management
-- View activity history
-- Search users and credentials
-- Filter by activity type
-- Paginated activity table
-- Display IP addresses
-- Display activity timestamps
+### 5. Credential Management
+- Store Website Credentials
+- Manage Usernames and Passwords
+- Store Email Addresses
+- Store Login URLs
+- Add Credential Notes
+- Edit Credentials
+- Delete Credentials
+- Copy Credentials
+- Secure Password Encryption
+- Password Visibility Management
 
-### 10. Bangladesh Timezone
-Application timezone:
+### 6. Activity Logs
+Track important system activities, including:
 
-`Asia/Dhaka`
+- Credential Created
+- Credential Updated
+- Credential Deleted
+- Password Viewed
+- Unauthorized Access Attempts
 
-All displayed application timestamps use Bangladesh local time.
+### 7. Login History
+- Track User Login Activities
+- Monitor Login History
+- Access Controlled by Permissions
 
-## Permission Structure
+### 8. Security Settings
 
-The following permissions are implemented or used by the project:
+#### Two-Factor Authentication (2FA)
+- Enable Two-Factor Authentication
+- Google Authenticator Support
+- QR Code Setup
+- Manual Setup Key
+- OTP Verification
+- Disable Two-Factor Authentication
+- Recovery Codes
+- View and Copy Recovery Codes
+- Regenerate Recovery Codes
+- Two-Factor Login Verification
+
+#### Additional Security
+- Password Update
+- Passkeys Support
+- Password Confirmation for Sensitive Actions
+
+### 9. User Interface & Experience
+- Modern Dashboard Design
+- Responsive Layout
+- Dark Mode by Default
+- Light Mode Support
+- Theme Switching
+- Consistent UI Components
+- Sidebar Navigation
+- Custom Error Pages
+- Professional Security Settings UI
+
+### 10. Error Handling
+- Custom 403 Forbidden Page
+- Unauthorized Access Handling
+- Unauthorized Access Logging
+
+## Permission List
+
+The application uses permission-based access control.
 
 | Permission | Description |
 |---|---|
-| `dashboard.view` | View dashboard |
-| `manager.view` | View managers |
-| `manager.create` | Create managers |
-| `manager.edit` | Edit managers |
-| `manager.delete` | Delete managers |
-| `website.view` | View websites |
-| `website.create` | Create websites |
-| `website.edit` | Edit websites |
-| `website.delete` | Delete websites |
-| `activity.view` | View activity logs |
+| `dashboard.view` | View Dashboard |
+| `manager.view` | View Managers |
+| `manager.create` | Create Managers |
+| `manager.edit` | Edit Managers |
+| `manager.delete` | Delete Managers |
+| `website.view` | View Websites |
+| `website.create` | Create Websites |
+| `website.edit` | Edit Websites |
+| `website.delete` | Delete Websites |
+| `credential.view` | View Credentials |
+| `credential.create` | Create Credentials |
+| `credential.edit` | Edit Credentials |
+| `credential.delete` | Delete Credentials |
+| `credential.copy` | Copy Credentials |
+| `password.view` | View Stored Passwords |
+| `activity.view` | View Activity Logs |
+| `login-activity.view` | View Login History |
 
-Credential permissions are part of the upcoming access-control phase:
-
-- `credential.view`
-- `credential.create`
-- `credential.edit`
-- `credential.delete`
-- `credential.password.view`
+Super Admin has access to all permissions.
 
 ## Installation
 
-### 1. Clone Repository
+### Requirements
+- PHP 8.5+
+- Composer
+- Node.js
+- pnpm
+- MySQL
+- Laravel 13
+
+### 1. Clone the Repository
 
 ```bash
 git clone YOUR_REPOSITORY_URL
+```
+
+```bash
 cd credential-manager
 ```
 
@@ -180,21 +186,21 @@ cd credential-manager
 composer install
 ```
 
-### 3. Environment Configuration
+### 3. Install Frontend Dependencies
+
+```bash
+pnpm install
+```
+
+### 4. Configure Environment
 
 ```bash
 cp .env.example .env
-php artisan key:generate
 ```
 
-Configure your database credentials in `.env`:
+Update your database credentials in the `.env` file:
 
 ```env
-APP_NAME="Credential Manager"
-APP_ENV=local
-APP_DEBUG=true
-APP_TIMEZONE=Asia/Dhaka
-
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
@@ -203,136 +209,89 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-### 4. Install Frontend Dependencies
+### 5. Generate Application Key
 
 ```bash
-pnpm install
+php artisan key:generate
 ```
 
-### 5. Run Database Migrations
+### 6. Run Database Migrations
 
 ```bash
 php artisan migrate
 ```
 
-Make sure your required roles, permissions, and Super Admin account have been configured.
+If your project uses seeders:
 
-### 6. Start Development Server
+```bash
+php artisan db:seed
+```
 
-Laravel:
+### 7. Start the Development Server
+
+Run Laravel:
 
 ```bash
 php artisan serve
 ```
 
-Frontend:
+Run Vite:
 
 ```bash
 pnpm dev
 ```
 
-Open:
+Open the application:
 
-`http://127.0.0.1:8000`
-
-## Production Build
-
-Build frontend assets:
-
-```bash
-pnpm build
+```text
+http://127.0.0.1:8000
 ```
 
-Clear Laravel caches:
+## Development Commands
+
+### Run TypeScript Checks
+
+```bash
+pnpm run types:check
+```
+
+### Build Frontend Assets
+
+```bash
+pnpm run build
+```
+
+### Clear Laravel Cache
 
 ```bash
 php artisan optimize:clear
 ```
 
-## Project Structure
+### View Application Routes
 
-Important project directories:
-
-```text
-credential-manager/
-│
-├── app/
-│   ├── Http/
-│   │   └── Controllers/
-│   │       ├── DashboardController.php
-│   │       ├── ManagerController.php
-│   │       ├── WebsiteController.php
-│   │       ├── CredentialController.php
-│   │       └── CredentialActivityController.php
-│   │
-│   └── Models/
-│       ├── User.php
-│       ├── Website.php
-│       ├── Credential.php
-│       └── CredentialActivity.php
-│
-├── database/
-│   └── migrations/
-│
-├── resources/
-│   └── js/
-│       ├── components/
-│       └── pages/
-│           ├── dashboard.tsx
-│           ├── managers/
-│           ├── websites/
-│           ├── credentials/
-│           └── activity-logs/
-│
-├── routes/
-│   └── web.php
-│
-└── README.md
+```bash
+php artisan route:list
 ```
 
-## Security Notes
+## Security Highlights
 
-- Passwords are encrypted using Laravel's encrypted model casting.
-- Password values must never be stored in activity logs.
-- Access to protected features should be controlled through permissions.
-- Sensitive credentials should only be exposed to authorized users.
-- Production deployments should use HTTPS and secure environment configuration.
-- Do not commit `.env` files or production secrets to Git.
+- Encrypted credential passwords
+- Role-based access control
+- Permission-based authorization
+- Two-Factor Authentication
+- Recovery Codes
+- Password confirmation for sensitive actions
+- Activity monitoring
+- Unauthorized access logging
 
-## Current Project Status
+## Project Status
 
-| Module | Status |
-|---|---|
-| Laravel & React Setup | Completed |
-| Authentication | Completed |
-| Role & Permission Setup | Completed |
-| Manager Management | Completed |
-| Website Management | Completed |
-| Credential Management | Completed |
-| Password Generator | Implemented |
-| Password Copy | Implemented |
-| Activity Logging | Completed |
-| Activity Log UI | Completed |
-| Dynamic Dashboard | Completed |
-| Bangladesh Timezone | Completed |
-| Credential Permission Enforcement | Upcoming |
-| Advanced Security Improvements | Upcoming |
+**Development Status: Active**
 
-## Future Improvements
+The core credential management functionality, role and permission management, dashboard, activity monitoring, login history, UI improvements, and Two-Factor Authentication have been implemented.
 
-- Complete credential-specific permission enforcement
-- Improve password access security
-- Add security overview and analytics
-- Add advanced audit log filters
-- Add credential sharing and access management
-- Add backup and recovery functionality
-- Add production deployment and CI/CD
+Additional improvements and testing may be added in future updates.
 
 ## License
 
-This project is currently under development. License details can be added before public distribution.
-
----
-
-**Credential Manager**  
-Built with Laravel 13, React, Inertia.js, and Tailwind CSS.
+This project is developed by **Forhad Hossain**.
