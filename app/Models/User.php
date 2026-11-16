@@ -19,6 +19,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property int $id
  * @property string $name
  * @property string $email
+ * @property string $status
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $two_factor_secret
@@ -41,6 +42,7 @@ class User extends Authenticatable implements PasskeyUser
         'email',
         'password',
         'email_verified_at',
+        'status',
     ];
 
     /**

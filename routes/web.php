@@ -7,11 +7,24 @@ use App\Http\Controllers\CredentialController;
 use App\Http\Controllers\CredentialActivityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LoginActivityController;
+use Inertia\Inertia;
 
 
 Route::inertia('/', 'welcome')->name('home');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::get('/account/pending', function () {
+    if (auth()->user()->status === 'active') {
+        return redirect()->route('dashboard');
+    }
+
+    if (auth()->user()->status !== 'pending') {
+        abort(403);
+    }
+
+    return Inertia::render('account/pending-approval');
+})->middleware('auth')->name('account.pending');
+
+Route::middleware(['auth', 'verified', 'account.active'])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->middleware('can:dashboard.view')
