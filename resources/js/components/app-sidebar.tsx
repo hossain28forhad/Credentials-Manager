@@ -43,6 +43,16 @@ export function AppSidebar() {
             icon: LayoutDashboard,
         },
 
+            ...(permissions.includes('user.view')
+        ? [
+              {
+                  title: 'User Management',
+                  href: '/users',
+                  icon: Users,
+              },
+          ]
+        : []),
+
         ...(permissions.includes('manager.view')
             ? [
                   {

@@ -20,6 +20,7 @@ class ManagerController extends Controller
                 'manager.create',
                 'manager.edit',
                 'manager.delete',
+                'user.view',
             ])
             ->pluck('name')
             ->toArray();

@@ -21,6 +21,8 @@ class PermissionSeeder extends Seeder
             'manager.edit',
             'manager.delete',
 
+            'user.view',
+
             'website.view',
             'website.create',
             'website.edit',

@@ -8,6 +8,7 @@ use App\Http\Controllers\CredentialActivityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LoginActivityController;
 use Inertia\Inertia;
+use App\Http\Controllers\UserController;
 
 
 Route::inertia('/', 'welcome')->name('home');
@@ -29,6 +30,24 @@ Route::middleware(['auth', 'verified', 'account.active'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->middleware('can:dashboard.view')
         ->name('dashboard');
+
+    // User Management
+    Route::middleware('can:user.view')->group(function () {
+        Route::get('/users', [UserController::class, 'index'])
+            ->name('users.index');
+
+        Route::post('/users/{user}/approve', [UserController::class, 'approve'])
+            ->name('users.approve');
+
+        Route::post('/users/{user}/reject', [UserController::class, 'reject'])
+            ->name('users.reject');
+            
+        Route::post('/users/{user}/suspend', [UserController::class, 'suspend'])
+            ->name('users.suspend');
+
+        Route::post('/users/{user}/activate', [UserController::class, 'activate'])
+            ->name('users.activate');
+    });
 
     Route::middleware('can:manager.view')->group(function () {
         Route::get('/managers', [ManagerController::class, 'index'])
